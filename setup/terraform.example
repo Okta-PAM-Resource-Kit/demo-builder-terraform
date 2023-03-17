@@ -1,0 +1,5 @@
+// AWS Variables
+aws_region = "us-west-2" // AWS Region - Please use: us-west-2
+aws_access_key = "xxx" // AWS Access Key
+aws_secret_key = "xxx" // AWS Secret Key
+aws_account_number = "xxx" // AWS Account Number

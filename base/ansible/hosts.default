@@ -1,0 +1,13 @@
+aws-win-host ansible_host=PUBLICIP
+
+[windows]
+aws-win-host
+
+[windows:vars]
+ansible_user = USERNAME
+ansible_password = PASSWORD
+ansible_connection = winrm
+ansible_winrm_read_timeout_sec = 60
+ansible_port = 5986
+ansible_winrm_transport = basic
+ansible_winrm_server_cert_validation = ignore
