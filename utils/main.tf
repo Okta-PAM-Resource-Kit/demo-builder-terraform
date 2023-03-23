@@ -100,7 +100,7 @@ resource "aws_s3_bucket" "opa-s3-bucket" {
 
 resource "null_resource" "download-opa-utils" {
   provisioner "local-exec" {
-    command = "curl -OL https://github.com/mrdanielmh/asa-utils/releases/download/opa/opa-utils.zip"
+    command = "curl -OL https://github.com/Okta-PAM-Resource-Kit/pam-utilities/releases/download/utils/pam-utilities.zip"
   }
   provisioner "local-exec" {
     when    = destroy
