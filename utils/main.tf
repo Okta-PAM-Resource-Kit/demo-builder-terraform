@@ -104,15 +104,15 @@ resource "null_resource" "download-opa-utils" {
   }
   provisioner "local-exec" {
     when    = destroy
-    command = "rm opa-utils.zip"
+    command = "rm pam-utilities.zip"
   }
 }
 
 // Upload OPA Utils Source to AWS S3 Bucket
 resource "aws_s3_object" "opa-s3-bucket-source-upload" {
   bucket = aws_s3_bucket.opa-s3-bucket.id
-  key    = "beanstalk/opa-utils.zip"
-  source = "opa-utils.zip"
+  key    = "beanstalk/pam-utilities.zip"
+  source = "pam-utilities.zip"
 
   depends_on = [
     resource.null_resource.download-opa-utils
