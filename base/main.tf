@@ -1464,7 +1464,7 @@ resource "oktapam_ad_task_settings" "opa_ad_task_settings" {
   os_attribute             = "operatingSystem"
   run_test                 = true
   rule_assignments {
-    base_dn           = "ou=Domain Controllers,dc=opa-domain,dc=com"
+    base_dn           = "ou=Domain Controllers,dc=${var.domain_name},dc=com"
     ldap_query_filter = "(objectCategory=Computer)"
     project_id        = oktapam_project.opa-domain-joined.project_id
     priority          = 1
