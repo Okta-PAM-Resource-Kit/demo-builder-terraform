@@ -24,4 +24,4 @@ aws_key_pair = "xxx" //AWS Key Pair Name - EC2 > Network & Security > Key Pairs
 // Domain Controller Variables
 windows_username = "Administrator"
 windows_password = "xxx" // Please ensure a complicated password but do not use a "$" character.
-domain_name = "opa-domain.com"
+domain_name = "opa-domain.com" // Please leave as opa-domain.com
