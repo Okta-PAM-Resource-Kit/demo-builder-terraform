@@ -31,19 +31,19 @@ echo "************************"
 echo "Starting OPA Demo build"
 echo "Please note the base build takes around 15 minutes to complete."
 echo "************************"
+sleep 3s # Waits 3 seconds.
 
 cd setup
 $terraform init
 echo "************************"
-echo "something here to let people know something is happening"
+echo "Deploying setup components required to complete full deployment."
 echo "************************"
 $terraform apply -auto-approve
 cd ..
 echo "************************"
 echo "Setup phase complete!"
 echo "************************"
-
-sleep 5s # Waits 5 seconds.
+sleep 3s # Waits 3 seconds.
 
 echo "************************"
 echo "Starting build phase."
@@ -51,8 +51,9 @@ echo "************************"
 cd base
 $terraform init
 echo "************************"
-echo "something here to let people know something is happening"
+echo "Deploying main Okta demo environment including Okta and AWS components."
 echo "************************"
+sleep 3s # Waits 3 seconds.
 $terraform apply -auto-approve
 cd ..
 echo "************************"
