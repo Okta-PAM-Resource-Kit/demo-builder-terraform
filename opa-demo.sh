@@ -43,6 +43,8 @@ echo "************************"
 echo "Setup phase complete!"
 echo "************************"
 
+sleep 5s # Waits 5 seconds.
+
 echo "************************"
 echo "Starting build phase."
 echo "************************"
