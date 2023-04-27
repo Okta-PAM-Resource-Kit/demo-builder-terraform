@@ -73,9 +73,6 @@ echo "************************"
     echo "************************"
     cd utils
     $terraform init
-    echo "************************"
-    echo "something here to let people know something is happening"
-    echo "************************"
     $terraform apply -auto-approve
     cd ..
     echo "************************"
@@ -100,9 +97,6 @@ if [ "$answer" == "yes" ]; then
     echo "************************"
     cd kubernetes
     $terraform init
-    echo "************************"
-    echo "something here to let people know something is happening"
-    echo "************************"
     $terraform apply -auto-approve
     cd ..
     echo "************************"
