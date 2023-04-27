@@ -35,6 +35,11 @@ variable "aws_key_pair" {
   sensitive   = true
 }
 
+variable "aws_role_arn" {
+  type = string
+  sensitive = true
+}
+
 // Okta Variables
 
 variable "okta_org" {

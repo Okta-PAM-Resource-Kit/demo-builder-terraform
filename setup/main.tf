@@ -64,10 +64,15 @@ resource "aws_iam_policy" "opa-build-policy" {
         {
             Effect = "Allow",
             Action = [
-                "sts:AssumeRole",
-                "ec2:*",
                 "iam:*",
-                "s3:*"
+                "elasticbeanstalk:*",
+                "sts:AssumeRole",
+                "s3:*",
+                "cloudformation:*",
+                "ec2:*",
+                "elasticloadbalancing:*",
+                "autoscaling:*",
+                "cloudwatch:*"
             ],
             Resource = "*"
         },
