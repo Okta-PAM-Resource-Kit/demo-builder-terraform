@@ -53,7 +53,9 @@ This repository has been designed to be modular, this means that if you only nee
                     "iam:ListPolicyVersions",
                     "iam:ListAttachedRolePolicies",
                     "iam:ListRolePolicies",
-                    "iam:DetachRolePolicy"
+                    "iam:DetachRolePolicy",
+                    "iam:DeletePolicyVersion",
+                    "iam:CreatePolicyVersion"
                 ],
                 "Resource": "*"
             },
