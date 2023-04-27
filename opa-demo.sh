@@ -43,7 +43,7 @@ cd ..
 echo "************************"
 echo "Setup phase complete!"
 echo "************************"
-sleep 3s # Waits 3 seconds.
+sleep 20s # Waits 20 seconds.
 
 echo "************************"
 echo "Starting build phase."
