@@ -72,7 +72,8 @@ resource "aws_iam_policy" "opa-build-policy" {
                 "ec2:*",
                 "elasticloadbalancing:*",
                 "autoscaling:*",
-                "cloudwatch:*"
+                "cloudwatch:*",
+                "eks:*"
             ],
             Resource = "*"
         },

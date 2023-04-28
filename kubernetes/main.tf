@@ -6,6 +6,7 @@ module "prod" {
     opa_key = var.opa_key
     opa_secret = var.opa_secret
     opa_team = var.opa_team
+    aws_role_arn = var.aws_role_arn
 }
 
 module "dev" {
@@ -16,4 +17,5 @@ module "dev" {
     opa_key = var.opa_key
     opa_secret = var.opa_secret
     opa_team = var.opa_team
+    aws_role_arn = var.aws_role_arn
 }
