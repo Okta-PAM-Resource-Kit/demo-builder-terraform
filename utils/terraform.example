@@ -20,6 +20,7 @@ aws_region = "us-west-2" // AWS Region - Please use a region with 4 AZs eg: us-w
 aws_access_key = "xxx" //AWS Access Key
 aws_secret_key = "xxx" //AWS Secret Key
 aws_key_pair = "xxx" //AWS Key Pair Name - EC2 > Network & Security > Key Pairs
+aws_role_arn = "arn:aws:iam::XXXXX:role/opa-build-role" // AWS Role ARN - Replace XXXXX with your AWS Account ID
 
 // Domain Controller Variables
 windows_username = "Administrator"
