@@ -15,7 +15,6 @@ opa_team = "xxx" // ASA/OPA Team Name
 
 // AWS Variables
 
-// Create/Use appropriate IAM Role - Make sure the IAM Role has 'AdministratorAccess' & 'AmazonS3FullAccess'
 aws_region = "us-west-2" // AWS Region - Please use: us-west-2
 aws_access_key = "xxx" // AWS Access Key
 aws_secret_key = "xxx" // AWS Secret Key

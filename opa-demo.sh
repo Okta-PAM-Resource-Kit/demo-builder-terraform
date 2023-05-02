@@ -43,6 +43,7 @@ cd ..
 echo "************************"
 echo "Setup phase complete!"
 echo "************************"
+echo "Waiting for 20 seconds to ensure AWS Roles and Policies are available"
 sleep 20 # Waits 20 seconds.
 
 echo "************************"

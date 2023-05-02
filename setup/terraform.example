@@ -1,5 +1,28 @@
+// Okta Variables
+
+okta_org = "xxx" // Okta Tenant Name without okta.com or oktapreview.com
+okta_admintoken = "xxx" // Okta API Token
+okta_environment = "oktapreview.com" // Okta Tenant Environment 
+okta_demouser_id = "xxx" // ID of Core Demo User who will have access to ASA. Navigate to your demo user in 'Directory' and get the UserID from the end of the URL
+okta_asa_app_id = "xxx" // ID of OPA Application within Okta. Open the OPA Application within Okta and get the AppID from the end of the URL
+
+// OPA Variables
+
+// Create New ASA/OPA Service Account and Assign to the Owners Group
+opa_key = "xxx" //Key from above Service Account
+opa_secret = "xxx" //Secret from above Service Account
+opa_team = "xxx" // ASA/OPA Team Name
+
 // AWS Variables
-aws_region = "us-west-2" // AWS Region - Please use: us-west-2
-aws_access_key = "xxx" // AWS Access Key
-aws_secret_key = "xxx" // AWS Secret Key
+
 aws_account_number = "xxx" // AWS Account Number
+aws_region = "us-west-2" // AWS Region - Please use a region with 4 AZs eg: us-west-2
+aws_access_key = "xxx" //AWS Access Key
+aws_secret_key = "xxx" //AWS Secret Key
+aws_key_pair = "xxx" //AWS Key Pair Name - EC2 > Network & Security > Key Pairs
+aws_role_arn = "arn:aws:iam::XXXXX:role/opa-build-role" // AWS Role ARN - Replace XXXXX with your AWS Account ID
+
+// Domain Controller Variables
+windows_username = "Administrator"
+windows_password = "xxx" // Please ensure a complicated password but do not use a "$" character.
+domain_name = "opa-domain.com" // Please leave as opa-domain.com
