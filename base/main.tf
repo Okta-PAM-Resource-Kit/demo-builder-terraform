@@ -239,25 +239,25 @@ resource "oktapam_project_group" "opa-everyone-group" {
   server_admin  = true
 }
 
-// OPA - Create OPA-Domain-Joined Project
-resource "oktapam_project" "opa-domain-joined" {
-    name = "opa-domain-joined"
-    create_server_users = true
-    forward_traffic = true
-    gateway_selector = "env=terraform-${local.timestamp}"
-    rdp_session_recording = true
-    ssh_session_recording = true
-}
+# // OPA - Create OPA-Domain-Joined Project
+# resource "oktapam_project" "opa-domain-joined" {
+#     name = "opa-domain-joined"
+#     create_server_users = true
+#     forward_traffic = true
+#     gateway_selector = "env=terraform-${local.timestamp}"
+#     rdp_session_recording = true
+#     ssh_session_recording = true
+# }
 
-// OPA - Assign 'everyone' to OPA-Domain-Joined project
-// Future - Change to Okta Based Groups
-resource "oktapam_project_group" "opa-everyone-group-domain-joined" {
-  group_name    = "everyone"
-  project_name  = oktapam_project.opa-domain-joined.name
-  create_server_group = false
-  server_access = true
-  server_admin  = false
-}
+# // OPA - Assign 'everyone' to OPA-Domain-Joined project
+# // Future - Change to Okta Based Groups
+# resource "oktapam_project_group" "opa-everyone-group-domain-joined" {
+#   group_name    = "everyone"
+#   project_name  = oktapam_project.opa-domain-joined.name
+#   create_server_group = false
+#   server_access = true
+#   server_admin  = false
+# }
 
 // OPA - Create OPA-Linux project
 resource "oktapam_project" "opa-linux" {
@@ -418,21 +418,21 @@ resource "oktapam_server_enrollment_token" "opa-windows-enrollment-token" {
 // OPA - Assign Sudo Entitlement to Project Group
 // TO DO
 
-// OPA - Create self-signed certificate for password-less authentication to windows ad joined machines
-resource "oktapam_ad_certificate_request" "opa_ad_self_signed_cert" {
-  type         = "self_signed"
-  display_name = "opa_ad_cert"
-  common_name  = "opa"
-  details {
-   ttl_days = 90
-  }
-}
+# // OPA - Create self-signed certificate for password-less authentication to windows ad joined machines
+# resource "oktapam_ad_certificate_request" "opa_ad_self_signed_cert" {
+#   type         = "self_signed"
+#   display_name = "opa_ad_cert"
+#   common_name  = "opa"
+#   details {
+#    ttl_days = 90
+#   }
+# }
 
-// Local - Copy OPA AD Certificate locally to copy onto Domain Controller
-resource "local_file" "opa_ad_self_signed_cert" {
-  content = oktapam_ad_certificate_request.opa_ad_self_signed_cert.content
-  filename = "temp/certs/opa_ss.cer"
-}
+# // Local - Copy OPA AD Certificate locally to copy onto Domain Controller
+# resource "local_file" "opa_ad_self_signed_cert" {
+#   content = oktapam_ad_certificate_request.opa_ad_self_signed_cert.content
+#   filename = "temp/certs/opa_ss.cer"
+# }
 
 // Create Random String
 resource "random_string" "random-string" {
@@ -568,6 +568,37 @@ resource "aws_s3_bucket" "opa-s3-bucket-session-replay" {
   force_destroy = true
 }
 
+// Set AWS S3 Bucket Permission
+resource "aws_s3_bucket_ownership_controls" "opa-s3-bucket-session-replay-ownership-controls" {
+  provider = aws.opa-aws-build
+  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "opa-s3-bucket-session-replay-public-access" {
+  provider = aws.opa-aws-build
+  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "opa-s3-bucket-session-replay-public-acl" {
+  provider = aws.opa-aws-build
+  depends_on = [
+    aws_s3_bucket_ownership_controls.opa-s3-bucket-session-replay-ownership-controls,
+    aws_s3_bucket_public_access_block.opa-s3-bucket-session-replay-public-access,
+  ]
+
+  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+  acl    = "public-read"
+}
+
+
 resource "local_file" "opa-s3-bucket-name" {
   content = aws_s3_bucket.opa-s3-bucket-session-replay.id
   filename = "opa-s3-bucket-name.txt"
@@ -598,6 +629,16 @@ resource "aws_vpc" "opa-vpc" {
   tags = {
     Name = "opa-vpc"
     Project = "opa-terraform"
+  }
+}
+
+resource "local_file" "aws_vpc_id" {
+  content = aws_vpc.opa-vpc.id
+  filename = "aws-vpc.txt"
+
+   provisioner "local-exec" {
+    when    = destroy
+    command = "rm aws-vpc.txt"
   }
 }
 
@@ -637,6 +678,16 @@ resource "aws_subnet" "opa-subnet" {
   }
 }
 
+resource "local_file" "aws_subnet_id" {
+  content = aws_subnet.opa-subnet.id
+  filename = "aws-subnet-id.txt"
+
+   provisioner "local-exec" {
+    when    = destroy
+    command = "rm aws-subnet-id.txt"
+  }
+}
+
 // AWS - Create OPA-GW-Interfact Network Interface
 // AWS - AssumeRole Credentials
 resource "aws_network_interface" "opa-gw-interface" {
@@ -651,19 +702,19 @@ resource "aws_network_interface" "opa-gw-interface" {
   }
 }
 
-// AWS - Create OPA-Domain-Controller Network Interface
-// AWS - AssumeRole Credentials
-resource "aws_network_interface" "opa-dc-interface" {
-  provider = aws.opa-aws-build
-  subnet_id   = aws_subnet.opa-subnet.id
-  private_ips = ["172.16.10.150"]
-  security_groups = [aws_security_group.opa-domain-controller.id]
+# // AWS - Create OPA-Domain-Controller Network Interface
+# // AWS - AssumeRole Credentials
+# resource "aws_network_interface" "opa-dc-interface" {
+#   provider = aws.opa-aws-build
+#   subnet_id   = aws_subnet.opa-subnet.id
+#   private_ips = ["172.16.10.150"]
+#   security_groups = [aws_security_group.opa-domain-controller.id]
 
- tags = {
-    Name = "opa-dc-interface"
-    Project = "opa-terraform"
-  }
-}
+#  tags = {
+#     Name = "opa-dc-interface"
+#     Project = "opa-terraform"
+#   }
+# }
 
 // AWS - Create OPA-Linux-Target Network Interface
 // AWS - AssumeRole Credentials
@@ -1066,6 +1117,26 @@ EOF
   }
 }
 
+resource "local_file" "gw-public" {
+  content = aws_instance.opa-gateway.public_ip
+  filename = "gw-public.txt"
+
+   provisioner "local-exec" {
+    when    = destroy
+    command = "rm gw-public.txt"
+  }
+}
+
+resource "local_file" "gw-private" {
+  content = aws_instance.opa-gateway.private_ip
+  filename = "gw-private.txt"
+
+   provisioner "local-exec" {
+    when    = destroy
+    command = "rm gw-private.txt"
+  }
+}
+
 // AWS - Create OPA-Gateway Security Group
 // AWS - AssumeRole Credentials
 resource "aws_security_group" "opa-gateway" {
@@ -1104,128 +1175,128 @@ resource "aws_security_group" "opa-gateway" {
   }
 }
 
-// Local - Create Ansible Variables File used for Domain Controller Configuration
-resource "local_file" "ansible_vars_tf" {
-  content  = <<-DOC
-windows_domain_controller_info:
-  domain_name: ${var.domain_name}
-  domain_admin_password: ${var.windows_password}
-  domain_admin_user: ${var.windows_username}@${var.domain_name}
-  safe_mode_password: ${var.windows_password}
-  state: domain_controller
-certificate_info:
-  win_cert_dir: C:\
-  local_cert_dir: ../../temp/certs/
-  ss_file_name: opa_ss.cer
-  DOC
-  filename = "ansible/vars/vars.yml"
-}
+# // Local - Create Ansible Variables File used for Domain Controller Configuration
+# resource "local_file" "ansible_vars_tf" {
+#   content  = <<-DOC
+# windows_domain_controller_info:
+#   domain_name: ${var.domain_name}
+#   domain_admin_password: ${var.windows_password}
+#   domain_admin_user: ${var.windows_username}@${var.domain_name}
+#   safe_mode_password: ${var.windows_password}
+#   state: domain_controller
+# certificate_info:
+#   win_cert_dir: C:\
+#   local_cert_dir: ../../temp/certs/
+#   ss_file_name: opa_ss.cer
+#   DOC
+#   filename = "ansible/vars/vars.yml"
+# }
 
-// AWS - Create OPA-Domain-Controller
-// AWS - AssumeRole Credentials
-resource "aws_instance" "opa-domain-controller" {
-  provider = aws.opa-aws-build
-  ami           = data.aws_ami.windows.id
-  instance_type = "t2.medium"
-  key_name      = var.aws_key_pair
+# // AWS - Create OPA-Domain-Controller
+# // AWS - AssumeRole Credentials
+# resource "aws_instance" "opa-domain-controller" {
+#   provider = aws.opa-aws-build
+#   ami           = data.aws_ami.windows.id
+#   instance_type = "t2.medium"
+#   key_name      = var.aws_key_pair
   
-  tags = {
-    Name        = "opa-domain-controller"
-    Project     = "opa-terraform"
-  }
+#   tags = {
+#     Name        = "opa-domain-controller"
+#     Project     = "opa-terraform"
+#   }
 
-  user_data = <<EOF
-  <powershell>
-  $admin = [adsi]("WinNT://./${var.windows_username}, user")
-  $admin.PSBase.Invoke("SetPassword", "${var.windows_password}")
-  Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))
-  Enable-WSManCredSSP -Role Server -Force
-  [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-  Install-PackageProvider -Name NuGet -Force
-  Install-Module PowerShellGet -AllowClobber -Force
-  </powershell>
-  EOF
+#   user_data = <<EOF
+#   <powershell>
+#   $admin = [adsi]("WinNT://./${var.windows_username}, user")
+#   $admin.PSBase.Invoke("SetPassword", "${var.windows_password}")
+#   Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))
+#   Enable-WSManCredSSP -Role Server -Force
+#   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+#   Install-PackageProvider -Name NuGet -Force
+#   Install-Module PowerShellGet -AllowClobber -Force
+#   </powershell>
+#   EOF
 
-  provisioner "local-exec" {
-    working_dir = "ansible"
-    command     = "sleep 120;cp hosts.default hosts; sed -i '' -e 's/USERNAME/${var.windows_username}/g' -e 's/PASSWORD/${var.windows_password}/g' -e 's/PUBLICIP/${aws_instance.opa-domain-controller.public_ip}/g' hosts;ansible-playbook -v -i hosts playbooks/windows_dc.yml"
-  }
+#   provisioner "local-exec" {
+#     working_dir = "ansible"
+#     command     = "sleep 120;cp hosts.default hosts; sed -i '' -e 's/USERNAME/${var.windows_username}/g' -e 's/PASSWORD/${var.windows_password}/g' -e 's/PUBLICIP/${aws_instance.opa-domain-controller.public_ip}/g' hosts;ansible-playbook -v -i hosts playbooks/windows_dc.yml"
+#   }
 
-  network_interface {
-    network_interface_id = aws_network_interface.opa-dc-interface.id
-    device_index         = 0
-  }
-}
+#   network_interface {
+#     network_interface_id = aws_network_interface.opa-dc-interface.id
+#     device_index         = 0
+#   }
+# }
 
-// AWS - Create OPA-Domain-Controller Security Group
-// AWS - AssumeRole Credentials
-resource "aws_security_group" "opa-domain-controller" {
-  provider = aws.opa-aws-build
-  name        = "opa-domain-controller"
-  description = "Ports required for OPA Domain Controller"
-  vpc_id      = aws_vpc.opa-vpc.id
+# // AWS - Create OPA-Domain-Controller Security Group
+# // AWS - AssumeRole Credentials
+# resource "aws_security_group" "opa-domain-controller" {
+#   provider = aws.opa-aws-build
+#   name        = "opa-domain-controller"
+#   description = "Ports required for OPA Domain Controller"
+#   vpc_id      = aws_vpc.opa-vpc.id
   
-  ingress {
-    from_port   = 3389
-    to_port     = 3389
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+#   ingress {
+#     from_port   = 3389
+#     to_port     = 3389
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
 
-    description = "Allow incoming RDP connections"
-  }
+#     description = "Allow incoming RDP connections"
+#   }
 
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "tcp"
-    cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
-    description = "Allow incoming TCP DNS connections"
-  }
+#   ingress {
+#     from_port   = 53
+#     to_port     = 53
+#     protocol    = "tcp"
+#     cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
+#     description = "Allow incoming TCP DNS connections"
+#   }
 
-  ingress {
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
-    cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
-    description = "Allow incoming UDP DNS connections"
-  }
+#   ingress {
+#     from_port   = 53
+#     to_port     = 53
+#     protocol    = "udp"
+#     cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
+#     description = "Allow incoming UDP DNS connections"
+#   }
 
-  ingress {
-    from_port   = 389
-    to_port     = 389
-    protocol    = "tcp"
-    cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
-    description = "Allow incoming TCP LDAP connections"
-  }
+#   ingress {
+#     from_port   = 389
+#     to_port     = 389
+#     protocol    = "tcp"
+#     cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
+#     description = "Allow incoming TCP LDAP connections"
+#   }
 
-  ingress {
-    from_port   = 636
-    to_port     = 636
-    protocol    = "tcp"
-    cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
-    description = "Allow incoming TCP LDAPS connections"
-  }
+#   ingress {
+#     from_port   = 636
+#     to_port     = 636
+#     protocol    = "tcp"
+#     cidr_blocks = ["${aws_instance.opa-gateway.private_ip}/32", "${aws_instance.opa-gateway.public_ip}/32"]
+#     description = "Allow incoming TCP LDAPS connections"
+#   }
 
-   ingress {
-    from_port   = 5986
-    to_port     = 5986
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow incoming WinRM connections"
-  }
+#    ingress {
+#     from_port   = 5986
+#     to_port     = 5986
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "Allow incoming WinRM connections"
+#   }
 
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-  tags = {
-    Name = "opa-domain-controller"
-    Project = "opa-terraform"
-  }
-}
+#   egress {
+#     from_port        = 0
+#     to_port          = 0
+#     protocol         = "-1"
+#     cidr_blocks      = ["0.0.0.0/0"]
+#     ipv6_cidr_blocks = ["::/0"]
+#   }
+#   tags = {
+#     Name = "opa-domain-controller"
+#     Project = "opa-terraform"
+#   }
+# }
 
 // AWS - Create OPA-Linux-Target
 // AWS - AssumeRole Credentials
@@ -1429,44 +1500,44 @@ resource "aws_security_group" "opa-windows-target" {
   }
 }
 
-// OPA - Creating gateway is not supported. Get the gateway id using datasource
-data "oktapam_gateways" "opa-gateway" {
-  contains = "opa-gateway-${local.timestamp}" # Filter gateway that contains given name
-depends_on = [
-  aws_instance.opa-domain-controller
-]
-}
+# // OPA - Creating gateway is not supported. Get the gateway id using datasource
+# data "oktapam_gateways" "opa-gateway" {
+#   contains = "opa-gateway-${local.timestamp}" # Filter gateway that contains given name
+# depends_on = [
+#   aws_instance.opa-domain-controller
+# ]
+# }
 
-// OPA - Create Active Directory Connection
-resource "oktapam_ad_connection" "opa-ad-connection" {
-  name                     = "opa-ad-connection"
-  gateway_id               = data.oktapam_gateways.opa-gateway.gateways[0].id
-  domain                   = var.domain_name
-  service_account_username = "${var.windows_username}@${var.domain_name}"
-  service_account_password = var.windows_password
-  use_passwordless         = true
-  certificate_id           = oktapam_ad_certificate_request.opa_ad_self_signed_cert.id
-  #domain_controllers       = ["dc1.com", "dc2.com"] //Optional: DC used to query the domain
-}
+# // OPA - Create Active Directory Connection
+# resource "oktapam_ad_connection" "opa-ad-connection" {
+#   name                     = "opa-ad-connection"
+#   gateway_id               = data.oktapam_gateways.opa-gateway.gateways[0].id
+#   domain                   = var.domain_name
+#   service_account_username = "${var.windows_username}@${var.domain_name}"
+#   service_account_password = var.windows_password
+#   use_passwordless         = true
+#   certificate_id           = oktapam_ad_certificate_request.opa_ad_self_signed_cert.id
+#   #domain_controllers       = ["dc1.com", "dc2.com"] //Optional: DC used to query the domain
+# }
 
-data "oktapam_project" "ad-domain-joined-project" {
-  name = "opa-domain-joined"
-}
+# data "oktapam_project" "ad-domain-joined-project" {
+#   name = "opa-domain-joined"
+# }
 
-// OPA - Create AD Joined Server Discovery Task
-resource "oktapam_ad_task_settings" "opa_ad_task_settings" {
-  connection_id            = oktapam_ad_connection.opa-ad-connection.id
-  name                     = "opa-ad-job"
-  is_active                = true
-  frequency                = 1 # Every 12 hours Note: If 24 hours then start_hour_utc is required
-  host_name_attribute      = "dNSHostName"
-  access_address_attribute = "dNSHostName"
-  os_attribute             = "operatingSystem"
-  run_test                 = true
-  rule_assignments {
-    base_dn           = "ou=Domain Controllers,dc=opa-domain,dc=com"
-    ldap_query_filter = "(objectCategory=Computer)"
-    project_id        = oktapam_project.opa-domain-joined.project_id
-    priority          = 1
-  }
-}
+# // OPA - Create AD Joined Server Discovery Task
+# resource "oktapam_ad_task_settings" "opa_ad_task_settings" {
+#   connection_id            = oktapam_ad_connection.opa-ad-connection.id
+#   name                     = "opa-ad-job"
+#   is_active                = true
+#   frequency                = 1 # Every 12 hours Note: If 24 hours then start_hour_utc is required
+#   host_name_attribute      = "dNSHostName"
+#   access_address_attribute = "dNSHostName"
+#   os_attribute             = "operatingSystem"
+#   run_test                 = true
+#   rule_assignments {
+#     base_dn           = "ou=Domain Controllers,dc=opa-domain,dc=com"
+#     ldap_query_filter = "(objectCategory=Computer)"
+#     project_id        = oktapam_project.opa-domain-joined.project_id
+#     priority          = 1
+#   }
+# }

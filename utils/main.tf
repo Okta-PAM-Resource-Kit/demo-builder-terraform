@@ -278,3 +278,4 @@ resource "aws_elastic_beanstalk_application_version" "eb-opa-utils-app-version" 
   bucket      = aws_s3_bucket.opa-s3-bucket.id
   key         = aws_s3_object.opa-s3-bucket-source-upload.id
 }
+

@@ -1,0 +1,175 @@
+- name: Disable Windows Defender 
+  win_regedit:
+    key: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection"
+    value: DisableRealTimeMonitoring
+    datatype: dword
+    data: 1
+
+- name: Disable Network Level Authentication
+  ansible.windows.win_powershell:
+    script: |
+      New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Force | Out-Null
+      New-ItemProperty -path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -name 'Enabled' -value '1' -PropertyType 'DWord' -Force | Out-Null
+      New-ItemProperty -path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -name 'DisabledByDefault' -value 0 -PropertyType 'DWord' -Force | Out-Null
+      New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Force | Out-Null
+      New-ItemProperty -path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -name 'Enabled' -value '1' -PropertyType 'DWord' -Force | Out-Null
+      New-ItemProperty -path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -name 'DisabledByDefault' -value 0 -PropertyType 'DWord' -Force | Out-Null
+
+- name: Disable Network Level Authentication
+  ansible.windows.win_powershell:
+    script: |
+      $ComputerName = [System.Net.Dns]::GetHostName()
+      (Get-WmiObject -class "Win32_TSGeneralSetting" -Namespace root\cimv2\terminalservices -ComputerName $ComputerName -Filter "TerminalName='RDP-tcp'").SetUserAuthenticationRequired(0)
+
+- name: Installing Windows Domain Name Services (DNS)
+  win_feature:
+    name: DNS
+    state: present
+    include_management_tools: yes
+    include_sub_features: yes
+  register: windows_dns_server
+
+- name: Reboot Server if installation of DNS feature requires it
+  win_reboot:
+    reboot_timeout_sec: 3600
+  when: windows_dns_server.reboot_required
+
+- name: Set Local Administrator Password
+  win_user:
+    name: Administrator
+    password: "{{ windows_domain_controller_info['domain_admin_password'] }}"
+    state: present
+
+- name: Installing Remote Server Administrator Tools (RSAT)
+  win_feature:
+    name: RSAT-AD-AdminCenter
+    state: present
+
+- name: Installing Active Directory Domain Services (ADDS)
+  win_feature: 
+    name: AD-Domain-Services
+    include_management_tools: yes
+    include_sub_features: yes
+    state: present
+
+- name: Set DNS Servers
+  win_dns_client:
+    adapter_names: "*"
+    ipv4_addresses: "127.0.0.1"
+
+- name: Creating New Windows Domain
+  win_domain:
+    dns_domain_name: "{{ windows_domain_controller_info['domain_name'] }}"
+    safe_mode_password: "{{ windows_domain_controller_info['safe_mode_password'] }}"
+  register: pri_domain_setup_install_result
+
+- name: Reboot Server
+  win_reboot:
+  when: pri_domain_setup_install_result.reboot_required
+
+- name: Wait for domain controller to be ready
+  win_shell: |
+    Get-ADDomain -Server "{{ windows_domain_controller_info['domain_name'] }}"
+  register: dc_ready
+  until: dc_ready is not failed
+  ignore_errors: yes
+  retries: 60
+  delay: 15
+
+- name: Managing Domain Controller Membership
+  win_domain_controller:
+    dns_domain_name: "{{ windows_domain_controller_info['domain_name'] }}"
+    domain_admin_user: "{{ windows_domain_controller_info['domain_admin_user'] }}"
+    domain_admin_password: "{{ windows_domain_controller_info['domain_admin_password'] }}"
+    safe_mode_password: "{{ windows_domain_controller_info['safe_mode_password'] }}"
+    state: "{{ windows_domain_controller_info['state'] }}"
+  register: windows_domain_controller
+
+- name: Rebooting server if required after Domain Controller installation
+  win_reboot:
+    reboot_timeout_sec: 3600
+    shutdown_timeout_sec: 3600
+  when: windows_domain_controller.reboot_required
+
+- name: Install ADCS with sub features and management tools
+  win_feature:
+    name: Adcs-Cert-Authority
+    state: present
+    include_management_tools: yes
+  register: adcs_install
+
+- name: Reboot if installing Adcs-Cert-Authority feature requires it
+  win_reboot:
+  when: adcs_install.reboot_required
+
+- name: Add ActiveDirectoryCSDsc
+  win_psmodule:
+    name: ActiveDirectoryCSDsc
+    state: present
+
+- name: Create domain user
+  win_domain_user:
+    name: "svc-iis"
+    upn: "svc-iis@{{ windows_domain_controller_info['domain_name'] }}"
+    description: Domain Account
+    password: "{{ windows_domain_controller_info['domain_admin_password'] }}"
+    password_never_expires: yes
+    groups:
+    - Domain Admins
+    state: present
+  register: pri_domain_setup_create_user_result
+  # after reboot, the netlogon service isn't available immediately, we need
+  # to retry until this succeeeds
+  retries: 30
+  delay: 15
+  until: pri_domain_setup_create_user_result is successful
+
+- name: Enable 'SmartcardLogonRequired' for svc-iis
+  win_shell:
+      Set-ADUser -Identity svc-iis -SmartcardLogonRequired $true
+
+- name: Configure AD CA role
+  win_dsc:
+    resource_name: AdcsCertificationAuthority
+    IsSingleInstance: 'Yes'
+    CAType: 'EnterpriseRootCA'
+    CryptoProviderName: 'RSA#Microsoft Software Key Storage Provider'
+    KeyLength: 2048
+    HashAlgorithmName: 'SHA256'
+    ValidityPeriod: 'Years'
+    ValidityPeriodUnits: 99
+    PsDscRunAsCredential_username: '{{ ansible_user }}'
+    PsDscRunAsCredential_password: '{{ ansible_password }}'
+    Credential_username: '{{ ansible_user }}'
+    Credential_password: '{{ ansible_password }}'
+  
+- name: Create temporary certificate directory
+  ansible.windows.win_file:
+    path: "{{ certificate_info['win_cert_dir'] }}"
+    state: directory
+
+- name: Copy Certificate Request on Windows Machine
+  ansible.windows.win_copy:
+    src: "{{ certificate_info['local_cert_dir'] }}{{ certificate_info['ss_file_name'] }}"
+    dest: "{{ certificate_info['win_cert_dir'] }}{{ certificate_info['ss_file_name'] }}"
+
+- name: 'Install Self Signed Certificate'
+  ansible.windows.win_certificate_store:
+    path: "{{ certificate_info['win_cert_dir'] }}{{ certificate_info['ss_file_name'] }}"
+    store_location: LocalMachine
+    store_name: Root
+    state: present
+
+- name: 'Import the certificate into AD'
+  win_command: >
+    certutil -dspublish -f {{ certificate_info['ss_file_name'] }} NTAuthCA
+  args:
+    chdir: "{{ certificate_info['win_cert_dir'] }}"
+  register: signing_req
+
+- name: 'Import the certificate into registry'
+  win_command: >
+    certutil -enterprise -addstore NTAuth {{ certificate_info['ss_file_name'] }}
+  args:
+    chdir: "{{ certificate_info['win_cert_dir'] }}"
+  register: signing_req

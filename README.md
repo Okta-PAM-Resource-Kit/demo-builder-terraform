@@ -99,20 +99,7 @@ This repository has been designed to be modular, this means that if you only nee
 
 - Download the code locally into an accessible folder (eg; /users/daniel/opa-demo/)
 
-- There are multiple terraform.tfvars files that need to be filled in; (I'm working on a solution to simplify this process)
 - Navigate into the 'setup' directory
-    - Rename 'terraform.example' to terraform.tfvars
-    - Fill in all variables in 'terraform.tfvars'
-
-- Navigate into the 'base' directory
-    - Rename 'terraform.example' to terraform.tfvars
-    - Fill in all variables in 'terraform.tfvars'
-
-- Navigate into the 'utils' directory
-    - Rename 'terraform.example' to terraform.tfvars
-    - Fill in all variables in 'terraform.tfvars'
-
-- Navigate into the 'kubernetes' directory
     - Rename 'terraform.example' to terraform.tfvars
     - Fill in all variables in 'terraform.tfvars'
 

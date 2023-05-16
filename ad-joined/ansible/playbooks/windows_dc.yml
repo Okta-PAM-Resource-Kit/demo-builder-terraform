@@ -1,0 +1,6 @@
+- hosts: all
+  gather_facts: True
+  roles:
+    - domain_controller_setup
+  vars_files:
+    - ../vars/vars.yml 
