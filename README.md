@@ -111,7 +111,7 @@ This repository has been designed to be modular, this means that if you only nee
 ### Destroy
 
 - In your command line application of choice change into the top level directory of the code (eg; /users/daniel/opa-demo/)
-- Type: ./opa-demo.sh
+- Type: ./opa-demo.sh -destroy
 - Follow the prompts
 
 <!-- 
