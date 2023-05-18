@@ -105,8 +105,12 @@ This repository has been designed to be modular, this means that if you only nee
 
 - In your command line application of choice change into the top level directory of the code (eg; /users/daniel/opa-demo/)
 - Type: `chmod +x opa-demo.sh` - only needs to be done once
-- Type: ./opa-demo.sh
-- Follow the prompts
+- Type: `./opa-demo.sh ` to get usage information
+
+Examples: 
+`opa-demo.sh -deploy -a -u -k ` - Deploys base demo with AD Joined, Utils and Kubernetes
+`opa-demo.sh` -deploy -u - Deploys base demo with only Utils
+
 
 ### Destroy
 
