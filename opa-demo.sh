@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Set Environment Variable to Fix Ansible Fork Issue
@@ -21,6 +20,15 @@ fi
 
 # Navigate to the directory containing the Terraform configuration files
 cd "$(dirname "$($terraform version -json | jq -r '.terraform_version')")"
+
+# Function to log messages
+log() {
+  local timestamp=$(date +"%Y-%m-%d %T")
+  local log_message=$1
+  echo "[${timestamp}] ${log_message}"
+  echo "[${timestamp}] ${log_message}" >> script.log
+}
+
 
 usage() {
   echo "Usage: $0 [-deploy | -destroy] [-a] [-u] [-k]"
@@ -68,329 +76,142 @@ if ! $deploy && ! $destroy; then
 fi
 
 if $deploy && $destroy; then
-  echo "Both -deploy and -destroy options cannot be specified simultaneously."
+  log "Both -deploy and -destroy options cannot be specified simultaneously."
   usage
 fi
 
 if $deploy; then
-  echo "************************"
-  echo "Starting OPA Demo build"
-  echo "Please note the base build takes around 5 minutes to complete."
-  echo "************************"
+  log "************************"
+  log "Starting OPA Demo build"
+  log "Please note the base build takes around 5 minutes to complete."
+  log "************************"
   sleep 3 # Waits 3 seconds.
 
   cd setup
   $terraform init
-  echo "************************"
-  echo "Deploying setup components required to complete full deployment."
-  echo "************************"
+  log "************************"
+  log "Deploying setup components required to complete full deployment."
+  log "************************"
   $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
 
   cd ..
-  echo "************************"
-  echo "Setup phase complete!"
-  echo "************************"
-  echo "Waiting for 20 seconds to ensure AWS Roles and Policies are available"
+  log "************************"
+  log "Setup phase complete!"
+  log "************************"
+  log "Waiting for 20 seconds to ensure AWS Roles and Policies are available"
   sleep 20 # Waits 20 seconds.
-  echo "************************"
-  echo "Starting build phase."
-  echo "************************"
+  log "************************"
+  log "Starting build phase."
+  log "************************"
   cd base
   $terraform init
-  echo "************************"
-  echo "Deploying main Okta demo environment including Okta and AWS components."
-  echo "************************"
+  log "************************"
+  log "Deploying main Okta demo environment including Okta and AWS components."
+  log "************************"
   sleep 3 # Waits 3 seconds.
   $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
 
   cd ..
-  echo "************************"
-  echo "Build phase complete!"
-  echo "But before you go..."
-  echo "************************"
+  log "************************"
+  log "Build phase complete!"
+  log "But before you go..."
+  log "************************"
 
   if $deploy_ad_joined; then
-    echo "************************"
-    echo "Great! Starting AD Joined deployment."
-    echo "Please note the AD Joined deployment takes around 15 minutes to complete."
-    echo "************************"
+    log "************************"
+    log "Great! Starting AD Joined deployment."
+    log "Please note the AD Joined deployment takes around 15 minutes to complete."
+    log "************************"
     cd ad-joined
     $terraform init
     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
     cd ..
-    echo "************************"
-    echo "AD Joined deployment complete!"
-    echo "************************"
+    log "************************"
+    log "AD Joined deployment complete!"
+    log "************************"
   else
-    echo "************************"
-    echo "Boo! AD Joined not deployed."
-    echo "************************"
+    log "************************"
+    log "Boo! AD Joined not deployed."
+    log "************************"
   fi
 
   if $deploy_utils; then
-    echo "************************"
-    echo "Great! Starting OPA Utils deployment."
-    echo "Please note the OPA Utils deployment takes around 5 minutes to complete."
-    echo "************************"
+    log "************************"
+    log "Great! Starting OPA Utils deployment."
+    log "Please note the OPA Utils deployment takes around 5 minutes to complete."
+    log "************************"
     cd utils
     $terraform init
     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
     cd ..
-    echo "************************"
-    echo "OPA Utils deployment complete!"
-    echo "************************"
+    log "************************"
+    log "OPA Utils deployment complete!"
+    log "************************"
   else
-    echo "************************"
-    echo "Boo! OPA Utils not deployed."
-    echo "************************"
+    log "************************"
+    log "Boo! OPA Utils not deployed."
+    log "************************"
   fi
 
   if $deploy_kubernetes; then
-    echo "************************"
-    echo "Great! Starting OPA Kubernetes deployment."
-    echo "Please note the OPA Kubernetes deployment takes around 20 minutes to complete."
-    echo "************************"
+    log "************************"
+    log "Great! Starting OPA Kubernetes deployment."
+    log "Please note the OPA Kubernetes deployment takes around 20 minutes to complete."
+    log "************************"
     cd kubernetes
     $terraform init
     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
     cd ..
-    echo "************************"
-    echo "OPA Kubernetes deployment complete!"
-    echo "************************"
+    log "************************"
+    log "OPA Kubernetes deployment complete!"
+    log "************************"
   else
-    echo "************************"
-    echo "Boo! OPA Kubernetes not deployed."
-    echo "************************"
+    log "************************"
+    log "Boo! OPA Kubernetes not deployed."
+    log "************************"
   fi
 
-  echo "************************"
-  echo "Deployment is fully complete. Enjoy your new environment and don't forget to destroy it when you are finished!"
-  echo "************************"
+  log "************************"
+  log "Deployment is fully complete. Enjoy your new environment and don't forget to destroy it when you are finished!"
+  log "************************"
 
 elif $destroy; then
-  echo "************************"
-  echo "Destroying OPA Kubernetes, if it exists."
-  echo "************************"
+  log "************************"
+  log "Destroying OPA Kubernetes, if it exists."
+  log "************************"
   cd kubernetes
   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
 
   cd ..
-  echo "************************"
-  echo "Destroying OPA Utils, if it exists."
-  echo "************************"
+  log "************************"
+  log "Destroying OPA Utils, if it exists."
+  log "************************"
   cd utils
   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
   cd ..
 
-  echo "************************"
-  echo "Destroying AD Joined, if it exists."
-  echo "************************"
+  log "************************"
+  log "Destroying AD Joined, if it exists."
+  log "************************"
   cd ad-joined
   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
   cd ..
 
-  echo "************************"
-  echo "Destroying OPA Base, if it exists."
-  echo "************************"
+  log "************************"
+  log "Destroying OPA Base, if it exists."
+  log "************************"
   cd base
   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
 
   cd ..
-  echo "************************"
-  echo "Destroying OPA Setup, if it exists."
-  echo "************************"
+  log "************************"
+  log "Destroying OPA Setup, if it exists."
+  log "************************"
   cd setup
   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
 
   cd ..
-  echo "************************"
-  echo "OPA demo environment destroyed."
-  echo "************************"
+  log "************************"
+  log "OPA demo environment destroyed."
+  log "************************"
 fi
-
-
-
-# # ------------------ OLD Code Below ------------------
-
-# #!/bin/bash
-
-# # Set Environment Variable to Fix Ansible Fork Issue
-# export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-
-# # Set the location of the Terraform executable
-# #terraform=/usr/local/bin/terraform
-
-# # Navigate to the directory containing the Terraform configuration files
-# #cd /path/to/terraform/config
-
-# # Try to detect the location of the Terraform executable
-# terraform=$(which terraform)
-
-# # If Terraform is not installed or the location cannot be found, display an error message and exit
-# if [ -z "$terraform" ]; then
-#   echo "Terraform not found. Please install Terraform and ensure it is in your PATH."
-#   exit 1
-# fi
-
-# # Navigate to the directory containing the Terraform configuration files
-# cd "$(dirname "$($terraform version -json | jq -r '.terraform_version')")"
-
-# # Prompt the user for action
-# echo "************************"
-# read -p "Do you want to deploy or destroy your OPA Demo? (deploy/destroy) " action
-
-# # Conditionally execute the action
-# if [ "$action" == "deploy" ]; then
-# echo "************************"
-# echo "Starting OPA Demo build"
-# echo "Please note the base build takes around 5 minutes to complete."
-# echo "************************"
-# sleep 3 # Waits 3 seconds.
-
-# cd setup
-# $terraform init
-# echo "************************"
-# echo "Deploying setup components required to complete full deployment."
-# echo "************************"
-# $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
-
-# cd ..
-# echo "************************"
-# echo "Setup phase complete!"
-# echo "************************"
-# echo "Waiting for 20 seconds to ensure AWS Roles and Policies are available"
-# sleep 20 # Waits 20 seconds.
-# echo "************************"
-# echo "Starting build phase."
-# echo "************************"
-# cd base
-# $terraform init
-# echo "************************"
-# echo "Deploying main Okta demo environment including Okta and AWS components."
-# echo "************************"
-# sleep 3 # Waits 3 seconds.
-# $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
-
-# cd ..
-# echo "************************"
-# echo "Build phase complete!"
-# echo "But before you go..."
-# echo "************************"
-
-# echo "************************"
-# # Do you want to deploy AD Joined?
-# read -p "Do you want to deploy AD Joined? (yes/no) " answer
-# # Conditionally apply the changes to the infrastructure
-# if [ "$answer" == "yes" ]; then
-# echo "************************"
-#     echo "Great! Starting AD Joined deployment."
-#     echo "Please note the AD Joined deployment takes around 15 minutes to complete."
-#     echo "************************"
-#     cd ad-joined
-#     $terraform init
-#     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
-#     cd ..
-#     echo "************************"
-#     echo "AD Joined deployment complete!"
-#     echo "************************"
-# else
-#     echo "************************"
-#     echo "Boo! AD Joined not deployed."
-#     echo "************************"
-# fi
-
-# echo "************************"
-# # Do you want to deploy OPA Utils?
-# read -p "Do you want to deploy OPA Utils? (yes/no) " answer
-# # Conditionally apply the changes to the infrastructure
-# if [ "$answer" == "yes" ]; then
-# echo "************************"
-#     echo "Great! Starting OPA Utils deployment."
-#     echo "Please note the OPA Utils deployment takes around 5 minutes to complete."
-#     echo "************************"
-#     cd utils
-#     $terraform init
-#     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
-#     cd ..
-#     echo "************************"
-#     echo "OPA Utils deployment complete!"
-#     echo "************************"
-# else
-#     echo "************************"
-#     echo "Boo! OPA Utils not deployed."
-#     echo "************************"
-# fi
-
-# echo "************************"
-# echo "One last question..."
-# # Do you want to deploy OPA Kubernetes?
-# read -p "Do you want to deploy OPA Kubernetes? (yes/no) " answer
-
-# # Conditionally apply the changes to the infrastructure
-# if [ "$answer" == "yes" ]; then
-#     echo "************************"
-#     echo "Great! Starting OPA Kubernetes deployment."
-#     echo "Please note the OPA Kubernetes deployment takes around 20 minutes to complete."
-#     echo "************************"
-#     cd kubernetes
-#     $terraform init
-#     $terraform apply -auto-approve -var-file="../setup/terraform.tfvars"
-#     cd ..
-#     echo "************************"
-#     echo "OPA Kubernetes deployment complete!"
-#     echo "************************"
-# else
-#     echo "************************"
-#     echo "Boo! OPA Kubernetes not deployed."
-#     echo "************************"
-# fi
-# echo "************************"
-# echo "Deplyment is fully complete. Enjoy your new environment and don't forget to destroy it when you are finished!"
-# echo "************************"
-
-# elif [ "$action" == "destroy" ]; then
-# echo "************************"
-#   echo "Destroying OPA Kubernetes, if it exists."
-#   echo "************************"
-#   cd kubernetes
-#   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
-
-#   cd ..
-#   echo "************************"
-#   echo "Destroying OPA Utils, if it exists."
-#   echo "************************"
-#   cd utils
-#   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
-#   cd ..
-
-#   echo "************************"
-#   echo "Destroying AD Joined, if it exists."
-#   echo "************************"
-#   cd ad-joined
-#   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
-#   cd ..
-
-
-#   echo "************************"
-#   echo "Destroying OPA Base, if it exists."
-#   echo "************************"
-#   cd base
-#   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
-
-#   cd ..
-#   echo "************************"
-#   echo "Destroying OPA Setup, if it exists."
-#   echo "************************"
-#   cd setup
-#   $terraform destroy -auto-approve -var-file="../setup/terraform.tfvars"
-
-#   cd ..
-#   echo "************************"
-#   echo "OPA demo environment destroyed."
-#   echo "************************"
-# else
-#   # Invalid action
-#   echo "************************"
-#   echo "Invalid action specified."
-#   echo "************************"
-# fi
