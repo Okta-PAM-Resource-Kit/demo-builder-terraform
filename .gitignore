@@ -51,3 +51,8 @@ opa-s3-bucket-name.txt
 opa-s3-bucket-region.txt
 opa-utils-instance-profile-name.txt
 pam-utilities.zip
+aws-subnet-id.txt
+aws-vpc.txt
+gw-private.txt
+gw-public.txt
+script.log
