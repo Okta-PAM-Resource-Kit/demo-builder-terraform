@@ -62,9 +62,14 @@ This repository has been designed to be modular, this means that if you only nee
                 "s3:GetObjectVersion"
             ],
             "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": "sts:AssumeRole",
+                "Resource": "arn:aws:iam::XXX:role/opa-build-role"
             }
         ]
-    }
+    } 
     ``` 
     
     - Click: Next: Tags
