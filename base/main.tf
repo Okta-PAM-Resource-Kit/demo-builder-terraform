@@ -568,35 +568,35 @@ resource "aws_s3_bucket" "opa-s3-bucket-session-replay" {
   force_destroy = true
 }
 
-// Set AWS S3 Bucket Permission
-resource "aws_s3_bucket_ownership_controls" "opa-s3-bucket-session-replay-ownership-controls" {
-  provider = aws.opa-aws-build
-  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
+# // Set AWS S3 Bucket Permission
+# resource "aws_s3_bucket_ownership_controls" "opa-s3-bucket-session-replay-ownership-controls" {
+#   provider = aws.opa-aws-build
+#   bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+#   rule {
+#     object_ownership = "BucketOwnerPreferred"
+#   }
+# }
 
-resource "aws_s3_bucket_public_access_block" "opa-s3-bucket-session-replay-public-access" {
-  provider = aws.opa-aws-build
-  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+# resource "aws_s3_bucket_public_access_block" "opa-s3-bucket-session-replay-public-access" {
+#   provider = aws.opa-aws-build
+#   bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
+#   block_public_acls       = false
+#   block_public_policy     = false
+#   ignore_public_acls      = false
+#   restrict_public_buckets = false
+# }
 
-resource "aws_s3_bucket_acl" "opa-s3-bucket-session-replay-public-acl" {
-  provider = aws.opa-aws-build
-  depends_on = [
-    aws_s3_bucket_ownership_controls.opa-s3-bucket-session-replay-ownership-controls,
-    aws_s3_bucket_public_access_block.opa-s3-bucket-session-replay-public-access,
-  ]
+# resource "aws_s3_bucket_acl" "opa-s3-bucket-session-replay-public-acl" {
+#   provider = aws.opa-aws-build
+#   depends_on = [
+#     aws_s3_bucket_ownership_controls.opa-s3-bucket-session-replay-ownership-controls,
+#     aws_s3_bucket_public_access_block.opa-s3-bucket-session-replay-public-access,
+#   ]
 
-  bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
-  acl    = "public-read"
-}
+#   bucket = aws_s3_bucket.opa-s3-bucket-session-replay.id
+#   acl    = "public-read"
+# }
 
 
 resource "local_file" "opa-s3-bucket-name" {

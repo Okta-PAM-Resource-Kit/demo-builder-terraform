@@ -28,44 +28,43 @@ This repository has been designed to be modular, this means that if you only nee
     - Select 'Attach Policies Directly'
     - Click: Create Policy - Note: New Tab Opens
     - Click: JSON
-    - Paste the following and replace XXX with your AWS Account Number:
+    - Paste the following and replace `XXX` with your AWS Account Number:
 
     ``` 
     {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": [
-                    "iam:CreateInstanceProfile",
-                    "iam:DeleteInstanceProfile",
-                    "iam:GetRole",
-                    "iam:GetPolicyVersion",
-                    "iam:GetPolicy",
-                    "iam:RemoveRoleFromInstanceProfile",
-                    "iam:DeletePolicy",
-                    "iam:CreateRole",
-                    "iam:DeleteRole",
-                    "iam:AttachRolePolicy",
-                    "iam:AddRoleToInstanceProfile",
-                    "iam:CreatePolicy",
-                    "iam:ListInstanceProfilesForRole",
-                    "iam:ListPolicyVersions",
-                    "iam:ListAttachedRolePolicies",
-                    "iam:ListRolePolicies",
-                    "iam:DetachRolePolicy",
-                    "iam:DeletePolicyVersion",
-                    "iam:CreatePolicyVersion"
-                ],
-                "Resource": "*"
-            },
-            {
-                "Effect": "Allow",
-                "Action": "sts:AssumeRole",
-                "Resource": "arn:aws:iam::XXX:role/opa-build-role"
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole",
+                "iam:CreateInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:GetRole",
+                "iam:GetPolicyVersion",
+                "iam:GetPolicy",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:DeletePolicy",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:AttachRolePolicy",
+                "iam:AddRoleToInstanceProfile",
+                "iam:CreatePolicy",
+                "iam:ListInstanceProfilesForRole",
+                "iam:DetachRolePolicy",
+                "iam:ListPolicyVersions",
+                "iam:ListAttachedRolePolicies",
+                "iam:CreatePolicyVersion",
+                "iam:ListRolePolicies",
+                "iam:DeletePolicyVersion",
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:GetObjectVersion"
+            ],
+            "Resource": "*"
             }
         ]
-    } 
+    }
     ``` 
     
     - Click: Next: Tags
