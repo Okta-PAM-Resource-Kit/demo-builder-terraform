@@ -182,7 +182,7 @@ resource "aws_instance" "opa-domain-controller" {
   <powershell>
   $admin = [adsi]("WinNT://./${var.windows_username}, user")
   $admin.PSBase.Invoke("SetPassword", "${var.windows_password}")
-  Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))
+  Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible-documentation/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))
   Enable-WSManCredSSP -Role Server -Force
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   Install-PackageProvider -Name NuGet -Force
